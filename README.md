@@ -11,6 +11,8 @@ Dashboard: Streamlit / Plotly
 Versionamiento: Git (código), DVC (datos y modelos)
 Lenguaje: Python 3.11+
 
+## Estructura del Proyecto
+```
 ├── data/               # Datasets crudos y procesados (rastreados con DVC)
 ├── notebooks/          # EDA y experimentación
 ├── src/                # Código fuente (features, entrenamiento, inferencia)
@@ -19,3 +21,4 @@ Lenguaje: Python 3.11+
 ├── models/             # Modelos serializados y artefactos
 ├── mlflow/             # Seguimiento de experimentos
 └── tests/              # Pruebas unitarias y de integración
+```
