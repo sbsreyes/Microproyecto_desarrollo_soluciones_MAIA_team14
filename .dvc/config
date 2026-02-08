@@ -1,4 +1,6 @@
 [core]
-    remote = localstore
+    remote = s3remote
 ['remote "localstore"']
     url = ../../dvcstore_team14
+['remote "s3remote"']
+    url = s3://microproyecto-team14/dvcstore
