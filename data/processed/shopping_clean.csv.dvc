@@ -1,0 +1,5 @@
+outs:
+- md5: 3197f7f59afe44c318067bebf515a19c
+  size: 413533
+  hash: md5
+  path: shopping_clean.csv

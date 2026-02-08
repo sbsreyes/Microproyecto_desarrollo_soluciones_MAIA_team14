@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
+# Ignore processed files but keep DVC pointers
+data/processed/*
+!data/processed/*.dvc
+!data/processed/.gitignore
+reports/figures/
+!reports/figures/
+!reports/figures/*.png
+MicroproyectoG14.pem
+*.pem

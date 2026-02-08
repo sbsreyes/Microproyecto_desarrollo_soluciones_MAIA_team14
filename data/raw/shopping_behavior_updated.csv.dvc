@@ -1,0 +1,5 @@
+outs:
+- md5: 6d179e61a7706eaea147380109b740ef
+  size: 416614
+  hash: md5
+  path: shopping_behavior_updated.csv

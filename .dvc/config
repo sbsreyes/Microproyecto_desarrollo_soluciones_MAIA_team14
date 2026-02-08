@@ -1,0 +1,8 @@
+[core]
+    remote = s3remote
+['remote "localstore"']
+    url = ../../dvcstore_team14
+['remote "s3remote"']
+    url = s3://amalia-lehmann-dvcstore-477568629202-02021206/dvcstore
+    profile = academy
+    region = us-east-1
