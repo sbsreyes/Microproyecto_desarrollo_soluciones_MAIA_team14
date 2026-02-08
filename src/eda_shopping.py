@@ -1,21 +1,56 @@
+"""
+EDA - Customer Shopping Behavior
+
+Exploración descriptiva de los datos (EDA) con el objetivo de:
+- Evaluar la calidad del dataset
+- Identificar patrones generales de compra
+- Generar tablas y visualizaciones que apoyen análisis posteriores
+- Dejar el dataset limpio y listo para aplicar cualquier tipo de modelo
+
+Salidas principales:
+- Tablas descriptivas en reports/tables
+- Figuras exploratorias en reports/figures
+- Dataset procesado en data/processed
+"""
+
 from pathlib import Path
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+
+#---------------------------------------------------------
+# Definición rutas
+#---------------------------------------------------------
 
 RAW_PATH = Path("data/raw/shopping_behavior_updated.csv")
 OUT_FIG = Path("reports/figures")
 OUT_TAB = Path("reports/tables")
 OUT_PROC = Path("data/processed")
 
+#---------------------------------------------------------
+# Funciones auxiliares
+#---------------------------------------------------------
 def snake_case(s: str) -> str:
+    """
+    Funcion la cual convierte nombres de columnas a 
+    formato snake_case.
+    - Pasa a minúsculas
+    - Elimina caracteres especiales
+    - Reemplaza espacios y guiones por guiones bajos
+    """    
     s = s.strip().lower()
     for ch in ["(", ")", "%"]:
         s = s.replace(ch, "")
     s = s.replace("/", "_").replace("-", "_").replace(" ", "_")
     return s
 
+#---------------------------------------------------------
+# Función principal
+#---------------------------------------------------------
 def main():
+    """
+    Función que ejecuta el flujo completo
+    """    
     OUT_FIG.mkdir(parents=True, exist_ok=True)
     OUT_TAB.mkdir(parents=True, exist_ok=True)
     OUT_PROC.mkdir(parents=True, exist_ok=True)
