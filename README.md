@@ -22,3 +22,15 @@ Lenguaje: Python 3.11+
 ├── mlflow/             # Seguimiento de experimentos
 └── tests/              # Pruebas unitarias y de integración
 ```
+
+## Cómo correr la EDA
+1. Crear ambiente e instalar dependencias:
+   - `python3 -m venv .venv && source .venv/bin/activate`
+   - `pip install -r requirements.txt`
+2. Ejecutar EDA:
+   - `python src/eda_shopping.py`
+
+## Control de versiones (Git vs DVC)
+- Git: almacena el código y artefactos livianos (scripts, tablas CSV pequeñas, figuras PNG).
+- DVC: versiona datasets grandes (raw y processed) mediante archivos `.dvc`.
+- Remote DVC (S3): se usa para almacenar físicamente los datasets versionados por DVC.
