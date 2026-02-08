@@ -56,6 +56,7 @@ def main():
     OUT_PROC.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(RAW_PATH)
+    print(df)
 
     # 1) Esquema / faltantes / únicos
     summary = pd.DataFrame({
@@ -89,7 +90,75 @@ def main():
             .to_frame("count")
             .to_csv(OUT_TAB / f"04_top_{c}.csv"))
 
-    # 6) Figuras clave
+    # 6) Análisis del monto de compra por categoría
+    print("Columnas disponibles:")
+    for c in df2.columns:
+        print("-", c)
+
+    if {"category", "purchase_amount_usd"}.issubset(df2.columns):
+        (
+            df2.groupby("category")["purchase_amount_usd"]
+            .agg(["count", "mean", "median", "std"])
+            .sort_values("mean", ascending=False)
+            .to_csv(OUT_TAB / "05_purchase_stats_by_category.csv")
+        )
+
+    # 7) Análisis del monto de compra según estado de suscripción
+    if {"subscription_status", "purchase_amount_usd"}.issubset(df2.columns):
+        (
+            df2.groupby("subscription_status")["purchase_amount_usd"]
+            .agg(["count", "mean", "median", "std"])
+            .to_csv(OUT_TAB / "06_purchase_stats_by_subscription.csv")
+        )
+
+    # 8) Correlación entre variables numéricas
+    if len(num_cols) > 1:
+        corr = df2[num_cols].corr()
+        corr.to_csv(
+            OUT_TAB / "07_numeric_correlations.csv"
+        )
+
+        # Visualización de la matriz de correlación
+        plt.figure(figsize=(8, 6))
+        plt.imshow(corr)
+        plt.colorbar()
+        plt.xticks(
+            range(len(corr.columns)),
+            corr.columns,
+            rotation=45
+        )
+        plt.yticks(
+            range(len(corr.columns)),
+            corr.columns
+        )
+        plt.title("Matriz de correlación (variables numéricas)")
+        plt.tight_layout()
+        plt.savefig(
+            OUT_FIG / "heatmap_correlations.png",
+            dpi=200
+        )
+        plt.close()
+
+    # 9) Segmentación de clientes por edad
+    if "age" in df2.columns:
+        df2["age_group"] = pd.cut(
+            df2["age"],
+            bins=[0, 25, 35, 45, 55, 100],
+            labels=["<25", "25-34", "35-44", "45-54", "55+"]
+        )
+
+        df2["age_group"].value_counts().to_csv(
+            OUT_TAB / "08_age_group_distribution.csv"
+        )
+
+    if {"age_group", "purchase_amount_usd"}.issubset(df2.columns):
+        (
+            df2.groupby("age_group")["purchase_amount_usd"]
+            .mean()
+            .to_csv(OUT_TAB / "09_avg_purchase_by_age_group.csv")
+        )
+
+    # 10) Figuras clave
     if "purchase_amount_usd" in df2.columns:
         plt.figure()
         df2["purchase_amount_usd"].plot(kind="hist", bins=30)
@@ -118,7 +187,7 @@ def main():
         plt.savefig(OUT_FIG / "scatter_age_vs_purchase.png", dpi=200)
         plt.close()
 
-    # 7) Dataset procesado
+    # 11) Dataset procesado
     df2.to_csv(OUT_PROC / "shopping_clean.csv", index=False)
 
     print("EDA lista:")
