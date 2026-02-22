@@ -1,3 +1,34 @@
+"""
+Dashboard Analítico — Customer Shopping Behavior
+
+Descripción:
+Aplicación interactiva desarrollada en Dash para la exploración visual y análisis
+del comportamiento de compra de clientes. El dashboard permite filtrar dinámicamente
+los datos y visualizar métricas clave de negocio para facilitar la toma de decisiones.
+
+Objetivos:
+- Analizar patrones de compra por categoría, edad y suscripción
+- Identificar tendencias de consumo y segmentación de clientes
+- Visualizar métricas clave (KPIs) en tiempo real
+- Detectar relaciones entre variables relevantes del dataset
+
+Funcionalidades principales:
+- Filtros interactivos por categoría y rango de edad
+- Indicadores KPI dinámicos
+- Visualizaciones estadísticas y comparativas
+- Análisis de dispersión, distribución y probabilidades
+- Ranking de categorías por gasto promedio
+
+Resultados esperados:
+- Comprensión clara del comportamiento del cliente
+- Insights accionables para negocio
+- Base visual para reportes ejecutivos
+- Soporte para futuras fases de modelado predictivo
+
+Tecnologías:
+Dash · Plotly · Pandas · Bootstrap · Python
+"""
+
 import dash
 from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
@@ -5,11 +36,11 @@ import pandas as pd
 import plotly.express as px
 
 
-# 1. Cargar datos Kaggle
+# 1. Cargar datos
 df = pd.read_csv('data/raw/shopping_behavior_updated.csv')
 
 
-# 2. Estilo
+# 2. Estilo visual profesional
 STYLE = {
     'bg': '#0B0F14',
     'card': '#121821',
@@ -32,7 +63,7 @@ app = dash.Dash(
 )
 
 
-# 3. KPI BOX COMPONENT
+# KPI COMPONENT
 def kpi_box(label, id):
     return html.Div([
         html.P(label, style={
@@ -52,7 +83,7 @@ def kpi_box(label, id):
     })
 
 
-# 4. LAYOUT
+# LAYOUT
 app.layout = html.Div(
     style={
         'backgroundColor': STYLE['bg'],
@@ -63,7 +94,7 @@ app.layout = html.Div(
     children=[
         dbc.Container([
 
-            # Header
+            # HEADER
             dbc.Row([
                 dbc.Col(html.Div([
                     html.H5("INSIGHTS ENGINE // BEHAVIOR_ANALYSIS",
@@ -85,11 +116,13 @@ app.layout = html.Div(
                 ], className="d-flex justify-content-end"), md=6)
             ], className="mb-4 align-items-center"),
 
+
             dbc.Row([
 
-                # SIDEBAR FILTROS
+                # SIDEBAR
                 dbc.Col([
                     html.Div([
+
                         html.Label("CATEGORY_SELECT",
                                    style={'fontSize': '10px', 'color': STYLE['muted']}),
 
@@ -114,6 +147,7 @@ app.layout = html.Div(
                                        'style': {'color': STYLE['muted'], 'fontSize': '10px'}}
                                    for i in range(20, 71, 10)}
                         ),
+
                     ], style={
                         'padding': '15px',
                         'backgroundColor': STYLE['card'],
@@ -121,7 +155,8 @@ app.layout = html.Div(
                     })
                 ], md=3),
 
-                # GRID GRÁFICOS
+
+                # PANEL GRÁFICOS
                 dbc.Col([
 
                     dbc.Row([
@@ -142,6 +177,16 @@ app.layout = html.Div(
                         dbc.Col(dcc.Graph(id='age-scatter-plot',
                                           config={'displayModeBar': False},
                                           style={'height': '290px'}), md=6),
+                    ], className="g-2 mb-2"),
+
+                    dbc.Row([
+                        dbc.Col(dcc.Graph(id='category-avg-plot',
+                                          config={'displayModeBar': False},
+                                          style={'height': '290px'}), md=6),
+
+                        dbc.Col(dcc.Graph(id='subscription-box-plot',
+                                          config={'displayModeBar': False},
+                                          style={'height': '290px'}), md=6),
                     ], className="g-2")
 
                 ], md=9)
@@ -151,13 +196,15 @@ app.layout = html.Div(
 )
 
 
-# 5. CALLBACK DASHBOARD
+# CALLBACK
 @app.callback(
     [
         Output('subscription-plot', 'figure'),
         Output('amount-dist-plot', 'figure'),
         Output('discount-heatmap', 'figure'),
         Output('age-scatter-plot', 'figure'),
+        Output('category-avg-plot', 'figure'),
+        Output('subscription-box-plot', 'figure'),
         Output('kpi-total', 'children'),
         Output('kpi-avg', 'children'),
         Output('kpi-sub', 'children')
@@ -171,12 +218,14 @@ def update_dashboard(cat, age):
     if cat != 'all':
         dff = dff[dff['Category'] == cat]
 
-    # ================= KPIs =================
+
+    # KPIs
     kpi1 = f"{len(dff)}"
     kpi2 = f"{dff['Purchase Amount (USD)'].mean():.1f}"
     kpi3 = f"{(dff['Subscription Status'] == 'Yes').mean():.0%}"
 
-    # ================= Layout gráfico global =================
+
+    # Layout global gráficos
     layout_cfg = {
         'template': 'plotly_dark',
         'paper_bgcolor': STYLE['card'],
@@ -189,7 +238,6 @@ def update_dashboard(cat, age):
         'transition_duration': 400
     }
 
-    # ================= GRÁFICOS =================
 
     # 1 Suscripción por género
     f1 = px.histogram(
@@ -202,6 +250,7 @@ def update_dashboard(cat, age):
     )
     f1.update_traces(marker_line_width=0)
 
+
     # 2 Distribución compras
     f2 = px.histogram(
         dff,
@@ -209,9 +258,9 @@ def update_dashboard(cat, age):
         color_discrete_sequence=[STYLE['accent']],
         title="PURCHASE INTENSITY"
     )
-    f2.update_traces(opacity=0.85)
 
-    # 3 Heatmap probabilidad
+
+    # 3 Heatmap
     ct = pd.crosstab(
         dff['Discount Applied'],
         dff['Subscription Status'],
@@ -226,7 +275,8 @@ def update_dashboard(cat, age):
     )
     f3.update_layout(coloraxis_showscale=False)
 
-    # 4 Scatter edad vs compra
+
+    # 4 Scatter
     f4 = px.scatter(
         dff,
         x="Age",
@@ -237,11 +287,42 @@ def update_dashboard(cat, age):
     )
     f4.update_traces(marker=dict(size=5))
 
-    # Aplicar layout global
-    for f in [f1, f2, f3, f4]:
+
+    # 5 Ranking categoría
+    cat_avg = (
+        dff.groupby("Category")["Purchase Amount (USD)"]
+        .mean()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
+
+    f5 = px.bar(
+        cat_avg,
+        x="Purchase Amount (USD)",
+        y="Category",
+        orientation="h",
+        color_discrete_sequence=[STYLE['accent']],
+        title="AVG PURCHASE BY CATEGORY"
+    )
+
+
+    # 6 Boxplot suscripción
+    f6 = px.box(
+        dff,
+        x="Subscription Status",
+        y="Purchase Amount (USD)",
+        color="Subscription Status",
+        color_discrete_sequence=[STYLE['accent'], STYLE['accent_soft']],
+        title="SPENDING BEHAVIOR BY SUBSCRIPTION"
+    )
+
+
+    # aplicar layout global
+    for f in [f1, f2, f3, f4, f5, f6]:
         f.update_layout(layout_cfg)
 
-    return f1, f2, f3, f4, kpi1, kpi2, kpi3
+
+    return f1, f2, f3, f4, f5, f6, kpi1, kpi2, kpi3
 
 
 if __name__ == '__main__':
