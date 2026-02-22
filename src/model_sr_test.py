@@ -79,7 +79,7 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     d['Promo Code Used']    = (d['Promo Code Used'] == 'Yes').astype(int)
     d['Frequency_Numeric']  = d['Frequency of Purchases'].map(FREQ_MAP)
 
-    # 3. Ingeniería de Variables (Para combatir el R2 negativo)
+    # 3. Ingeniería de Variables
     # Creamos interacciones que ayuden al modelo a ver patrones de gasto
     d['Age_x_Freq'] = d['Age'] * d['Frequency_Numeric']
     d['Total_Engagement'] = d['Previous Purchases'] * d['Review Rating']
