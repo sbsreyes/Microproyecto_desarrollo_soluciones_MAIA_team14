@@ -1,53 +1,67 @@
 import dash
 from dash import dcc, html, Input, Output
+import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
 
-# 1. Cargar y limpiar datos
-df = pd.read_csv('data/raw/shopping_behavior_updated.csv')
+# Cargar datos
+df = pd.read_csv('shopping_behavior_updated.csv')
 
-# Inicializar la App
-app = dash.Dash(__name__)
+# Inicializar la App con un tema profesional (SLATE es oscuro y moderno)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SLATE])
 
-# 2. Diseño de la Interfaz (Layout)
-app.layout = html.Div(style={'backgroundColor': '#1e1e1e', 'color': 'white', 'padding': '20px', 'fontFamily': 'Arial'}, children=[
-    html.H1("Dashboard de Análisis: Comportamiento de Compra", style={'textAlign': 'center', 'marginBottom': '30px'}),
+# --- DISEÑO DE COMPONENTES ---
 
-    html.Div([
-        html.Div([
-            html.Label("Seleccionar Categoría:"),
-            dcc.Dropdown(
-                id='category-filter',
-                options=[{'label': c, 'value': c} for c in df['Category'].unique()] + [{'label': 'Todas', 'value': 'all'}],
-                value='all',
-                style={'color': 'black'}
-            ),
-        ], style={'width': '45%', 'display': 'inline-block', 'padding': '10px'}),
+header = html.Div([
+    html.H2("Análisis de Comportamiento de Compra", className="display-4 text-center mt-4"),
+    html.P("Insights predictivos y segmentación de clientes", className="lead text-center mb-5"),
+    html.Hr(style={'borderColor': 'white'})
+], className="container")
 
-        html.Div([
-            html.Label("Rango de Edad:"),
-            dcc.RangeSlider(
-                id='age-slider',
-                min=df['Age'].min(),
-                max=df['Age'].max(),
-                value=[df['Age'].min(), df['Age'].max()],
-                marks={i: str(i) for i in range(15, 75, 5)}
-            ),
-        ], style={'width': '45%', 'display': 'inline-block', 'padding': '10px'}),
-    ], style={'backgroundColor': '#2d2d2d', 'padding': '20px', 'borderRadius': '10px', 'marginBottom': '20px'}),
-
-    html.Div([
-        dcc.Graph(id='subscription-plot', style={'width': '48%', 'display': 'inline-block'}),
-        dcc.Graph(id='amount-dist-plot', style={'width': '48%', 'display': 'inline-block'}),
-    ]),
-
-    html.Div([
-        dcc.Graph(id='discount-heatmap', style={'width': '48%', 'display': 'inline-block'}),
-        dcc.Graph(id='age-scatter-plot', style={'width': '48%', 'display': 'inline-block'}),
+controls = dbc.Card([
+    dbc.CardBody([
+        html.H5("Controles de Filtro", className="card-title"),
+        html.Label("Categoría de Producto"),
+        dcc.Dropdown(
+            id='category-filter',
+            options=[{'label': c, 'value': c} for c in df['Category'].unique()] + [{'label': 'Todas', 'value': 'all'}],
+            value='all',
+            className="mb-3",
+            style={'color': '#333'}
+        ),
+        html.Label("Rango de Edad"),
+        dcc.RangeSlider(
+            id='age-slider',
+            min=df['Age'].min(),
+            max=df['Age'].max(),
+            value=[df['Age'].min(), df['Age'].max()],
+            marks={i: str(i) for i in range(20, 71, 10)},
+            step=1
+        ),
     ])
-])
+], className="mb-4 shadow")
 
-# 3. Lógica de Interactividad (Callbacks)
+# --- LAYOUT PRINCIPAL ---
+
+app.layout = dbc.Container([
+    header,
+    dbc.Row([
+        dbc.Col(controls, md=4),
+        dbc.Col([
+            dbc.Row([
+                dbc.Col(dcc.Graph(id='subscription-plot', className="shadow"), md=6),
+                dbc.Col(dcc.Graph(id='amount-dist-plot', className="shadow"), md=6),
+            ], className="mb-4"),
+            dbc.Row([
+                dbc.Col(dcc.Graph(id='discount-heatmap', className="shadow"), md=6),
+                dbc.Col(dcc.Graph(id='age-scatter-plot', className="shadow"), md=6),
+            ])
+        ], md=8)
+    ])
+], fluid=True)
+
+# --- LÓGICA (CALLBACKS) ---
+
 @app.callback(
     [Output('subscription-plot', 'figure'),
      Output('amount-dist-plot', 'figure'),
@@ -57,31 +71,36 @@ app.layout = html.Div(style={'backgroundColor': '#1e1e1e', 'color': 'white', 'pa
      Input('age-slider', 'value')]
 )
 def update_graphs(selected_category, age_range):
-    # Filtrar datos
     filtered_df = df[(df['Age'] >= age_range[0]) & (df['Age'] <= age_range[1])]
     if selected_category != 'all':
         filtered_df = filtered_df[filtered_df['Category'] == selected_category]
 
-    # Gráfico 1: Suscripción por Género
+    # Paleta de colores consistente
+    colors = {'Yes': '#00fa9a', 'No': '#ff4b4b'}
+
+    # 1. Suscripción por Género
     fig1 = px.histogram(filtered_df, x="Gender", color="Subscription Status", 
                         barmode="group", title="Suscripción por Género",
-                        template="plotly_dark", color_discrete_map={'Yes': '#00CC96', 'No': '#EF553B'})
+                        template="plotly_dark", color_discrete_map=colors)
+    fig1.update_layout(margin=dict(l=20, r=20, t=40, b=20))
 
-    # Gráfico 2: Distribución de Gasto
-    fig2 = px.histogram(filtered_df, x="Purchase Amount (USD)", nbins=20,
-                        title="Distribución de Montos de Compra",
-                        template="plotly_dark", color_discrete_sequence=['#636EFA'])
+    # 2. Distribución de Gasto
+    fig2 = px.histogram(filtered_df, x="Purchase Amount (USD)", 
+                        title="Distribución de Tickets de Venta",
+                        template="plotly_dark", color_discrete_sequence=['#4da6ff'])
+    fig2.update_layout(margin=dict(l=20, r=20, t=40, b=20))
 
-    # Gráfico 3: Matriz Descuento vs Suscripción
+    # 3. Heatmap Descuento
     ct = pd.crosstab(filtered_df['Discount Applied'], filtered_df['Subscription Status'], normalize='index')
-    fig3 = px.imshow(ct, text_auto=True, title="Probabilidad de Suscripción según Descuento",
-                     labels=dict(x="Suscrito", y="Aplicó Descuento", color="Probabilidad"),
-                     template="plotly_dark", color_continuous_scale='Viridis')
+    fig3 = px.imshow(ct, text_auto=".2f", title="Correlación: Descuento vs Suscripción",
+                     template="plotly_dark", color_continuous_scale='Blues')
+    fig3.update_layout(margin=dict(l=20, r=20, t=40, b=20))
 
-    # Gráfico 4: Edad vs Gasto (Scatter)
-    fig4 = px.scatter(filtered_df, x="Age", y="Purchase Amount (USD)", color="Season",
-                      title="Edad vs Gasto por Temporada",
-                      template="plotly_dark", opacity=0.7)
+    # 4. Edad vs Gasto
+    fig4 = px.scatter(filtered_df, x="Age", y="Purchase Amount (USD)", color="Category",
+                      title="Análisis de Dispersión: Edad vs Gasto",
+                      template="plotly_dark", opacity=0.6)
+    fig4.update_layout(margin=dict(l=20, r=20, t=40, b=20))
 
     return fig1, fig2, fig3, fig4
 
