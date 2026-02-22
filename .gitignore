@@ -12,3 +12,22 @@ reports/figures/
 !reports/figures/*.png
 MicroproyectoG14.pem
 *.pem
+# Ambientes virtuales
+env/
+venv/
+.venv/
+bin/
+lib/
+share/
+include/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de sistema (macOS)
+.DS_Store
+
+# MLflow (opcional, si no quieres subir los experimentos pesados)
+mlruns/
