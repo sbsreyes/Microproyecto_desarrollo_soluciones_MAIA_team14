@@ -8,6 +8,9 @@ import pandas as pd
 import numpy as np
 import random
 
+import mlflow
+import mlflow.sklearn
+
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -104,39 +107,51 @@ best_score = np.inf
 
 print("\n===== ENTRENANDO MODELOS =====")
 
+mlflow.set_tracking_uri("sqlite:///mlflow.db")
+mlflow.set_experiment("Shopping_ML_Models")
+
 for name, model in models.items():
 
-    pipe = Pipeline([
-        ("prep", preprocess),
-        ("model", model)
-    ])
+    with mlflow.start_run(run_name=name):
 
-    if name in params:
-        grid = GridSearchCV(
-            pipe,
-            params[name],
-            cv=10,
-            scoring="neg_root_mean_squared_error",
-            n_jobs=-1
-        )
-        grid.fit(X_train, y_train)
-        fitted = grid.best_estimator_
-    else:
-        fitted = pipe.fit(X_train, y_train)
+        pipe = Pipeline([
+            ("prep", preprocess),
+            ("model", model)
+        ])
 
-    preds = fitted.predict(X_test)
+        if name in params:
+            grid = GridSearchCV(
+                pipe,
+                params[name],
+                cv=10,
+                scoring="neg_root_mean_squared_error",
+                n_jobs=-1
+            )
+            grid.fit(X_train, y_train)
+            fitted = grid.best_estimator_
 
-    rmse = np.sqrt(mean_squared_error(y_test, preds))
-    r2 = r2_score(y_test, preds)
+            mlflow.log_params(grid.best_params_)
 
-    print(f"\n{name}")
-    print("RMSE:", rmse)
-    print("R2:", r2)
+        else:
+            fitted = pipe.fit(X_train, y_train)
 
-    if rmse < best_score:
-        best_score = rmse
-        best_model = fitted
-        best_name = name
+        preds = fitted.predict(X_test)
+
+        rmse = np.sqrt(mean_squared_error(y_test, preds))
+        r2 = r2_score(y_test, preds)
+
+        mlflow.log_metric("RMSE", rmse)
+        mlflow.log_metric("R2", r2)
+        mlflow.sklearn.log_model(fitted, "model")
+
+        print(f"\n{name}")
+        print("RMSE:", rmse)
+        print("R2:", r2)
+
+        if rmse < best_score:
+            best_score = rmse
+            best_model = fitted
+            best_name = name
 
 print("\n🏆 MEJOR MODELO:", best_name)
 
