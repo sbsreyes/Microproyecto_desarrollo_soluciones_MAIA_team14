@@ -1,0 +1,5 @@
+run_id,run_name,status,start_time,end_time,param.model,param.target,metric.accuracy,metric.f1_score,metric.roc_auc,metric.rmse,metric.r2,metric.mae
+22c836fe74584877834398792e98f7c6,LogisticRegression_Subscription,FINISHED,1771799251470,1771799251558,LogisticRegression,Subscription,0.72,0.01,0.71,23.76,-0.01,20.74
+a83e23df21e7455ebda9b235a935a927,RandomForest_Subscription,FINISHED,1771799251336,1771799251453,RandomForest,Subscription,0.72,0.1,0.73,24.24,-0.05,21.12
+d005859c192245e98cfe220b35e5796d,LogisticRegression_Subscription,FINISHED,1771797600046,1771797600145,LogisticRegression,Subscription,0.72,0.01,0.71,23.76,-0.01,20.74
+0aec5f657b6a4f8986713b1caf06ad91,RandomForest_Subscription,FINISHED,1771797599903,1771797600027,RandomForest,Subscription,0.72,0.1,0.73,24.24,-0.05,21.12

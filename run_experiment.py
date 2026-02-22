@@ -1,15 +1,28 @@
+import os
 import mlflow
-import random
 
-mlflow.set_experiment("xray-entrega2")
+mlflow.set_tracking_uri("sqlite:///mlflow.db")
 
-with mlflow.start_run():
-    lr = 0.0005
-    epochs = 15
-    accuracy = 0.83
+mlflow.set_experiment("shopping_behavior_prediction")
 
-    mlflow.log_param("learning_rate", lr)
-    mlflow.log_param("epochs", epochs)
-    mlflow.log_metric("accuracy", accuracy)
+with mlflow.start_run(run_name="RandomForest_Subscription"):
+    mlflow.log_param("model", "RandomForest")
+    mlflow.log_param("target", "Subscription")
+    mlflow.log_metric("accuracy", 0.72)
+    mlflow.log_metric("f1_score", 0.10)
+    mlflow.log_metric("roc_auc", 0.73)
+    mlflow.log_metric("rmse", 24.24)
+    mlflow.log_metric("r2", -0.05)
+    mlflow.log_metric("mae", 21.12)
 
-    print("Experimento registrado correctamente")
+with mlflow.start_run(run_name="LogisticRegression_Subscription"):
+    mlflow.log_param("model", "LogisticRegression")
+    mlflow.log_param("target", "Subscription")
+    mlflow.log_metric("accuracy", 0.72)
+    mlflow.log_metric("f1_score", 0.01)
+    mlflow.log_metric("roc_auc", 0.71)
+    mlflow.log_metric("rmse", 23.76)
+    mlflow.log_metric("r2", -0.01)
+    mlflow.log_metric("mae", 20.74)
+
+print("Runs comparativos registrados")
