@@ -9,7 +9,7 @@ import plotly.express as px
 df = pd.read_csv('data/raw/shopping_behavior_updated.csv')
 
 
-# 2. Estilo global (Executive Dark Pro)
+# 2. Estilo
 STYLE = {
     'bg': '#0B0F14',
     'card': '#121821',
