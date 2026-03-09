@@ -3,13 +3,6 @@ app/core/config.py
 ==================
 Centraliza TODA la configuración de la API.
 
-¿Por qué existe este archivo?
-  En producción necesitas cambiar cosas (el puerto, los dominios que pueden
-  llamar la API, el nivel de logs) SIN tocar el código.  Este módulo lee
-  esas variables desde el entorno (o usa defaults seguros).
-
-  Ejemplo: en EC2 puedes hacer  API_PORT=8080 python run.py  y la API
-  arranca en el puerto 8080 sin modificar nada.
 """
 
 import os

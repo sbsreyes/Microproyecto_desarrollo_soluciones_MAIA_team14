@@ -2,11 +2,6 @@
 Transformadores personalizados sklearn para el preprocesamiento
 del dataset Shopping Behavior.
 
-Diseño clave: todo el feature engineering está encapsulado en
-ShoppingPreprocessor como un único sklearn transformer.  Esto permite:
-  - Incluirlo en un Pipeline de sklearn (fit/transform)
-  - Serializar el pipeline completo con joblib (reproducible)
-  - Garantizar las mismas 34 columnas en train y en inferencia
 """
 
 from typing import List

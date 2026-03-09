@@ -1,14 +1,7 @@
 """
 app/schemas/predict.py
 ======================
-Define la "forma" de los datos que entran y salen de la API.
 
-¿Por qué Pydantic aquí?
-  FastAPI usa Pydantic para validar automáticamente el JSON que llega.
-  Si el cliente manda un campo de más, lo ignora.
-  Si falta un campo obligatorio, responde 422 con un mensaje claro.
-  Si Age viene como "treinta y cinco" en vez de 35, responde 422.
-  Todo esto SIN que tengas que escribir un if/else de validación.
 
 Hay DOS partes:
   1. PredictionRequest  → lo que el cliente MANDA (entrada)

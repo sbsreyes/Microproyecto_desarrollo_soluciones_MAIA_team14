@@ -2,20 +2,6 @@
 app/api/endpoints/health.py
 ============================
 Endpoint GET /health
-
-¿Para qué sirve este endpoint?
-  Es el más simple de todos pero uno de los más importantes en producción.
-
-  1. El DASHBOARD lo llama al iniciar para saber si la API está disponible
-     antes de habilitar el botón "Predecir".
-
-  2. AWS (load balancers, ECS) lo llama periódicamente para saber si
-     el contenedor está sano. Si devuelve 200 → vivo. Si falla → reinicia.
-
-  3. TÚ lo usas para verificar que el deploy funcionó sin tener que
-     probar el endpoint completo:
-       curl http://IP:8001/api/v1/health
-
 Responde:
   {
     "status": "ok",

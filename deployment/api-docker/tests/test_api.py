@@ -3,18 +3,6 @@ tests/test_api.py
 ==================
 Pruebas de integración de los endpoints de la API.
 
-¿Diferencia entre pruebas unitarias y de integración?
-  - Unitarias (test_prediction.py en el modelo):
-    Prueban make_prediction() de forma aislada, sin HTTP.
-
-  - De integración (este archivo):
-    Prueban el flujo completo: cliente HTTP → endpoint → modelo → respuesta.
-    Verifican que los status codes, el JSON y los contratos sean correctos.
-
-¿Qué es TestClient?
-  FastAPI incluye un cliente de prueba basado en httpx que simula un servidor
-  real SIN necesitar que el servidor esté corriendo.
-  Las pruebas se ejecutan en memoria, son rápidas y no necesitan red.
 
 Ejecutar:
   pytest tests/ -v

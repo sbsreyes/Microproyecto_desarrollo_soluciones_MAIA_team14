@@ -1,7 +1,7 @@
 """
 Validación de datos de entrada.
 Usa validación manual (sin pydantic) para compatibilidad sin instalación extra.
-En EC2 con requirements.txt se puede migrar a pydantic si se desea.
+En EC2 con requirements.txt se puede migrar a pydantic.
 """
 
 from typing import List, Optional, Tuple

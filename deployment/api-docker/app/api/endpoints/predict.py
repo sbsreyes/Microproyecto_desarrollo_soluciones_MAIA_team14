@@ -8,13 +8,6 @@ Hay DOS endpoints en este archivo:
   POST /predict        → recibe 1 o N clientes, devuelve predicciones
   POST /predict/single → versión simplificada para llamadas desde el dashboard
                          (recibe un solo cliente directamente, sin wrapper "inputs")
-
-¿Por qué separar /predict y /predict/single?
-  /predict   → es el endpoint "profesional", acepta batches, lo usa el dashboard
-               cuando el usuario sube un CSV con múltiples filas.
-  /predict/single → es más cómodo para el panel de "predecir un cliente",
-                    donde el usuario llena un formulario con un solo cliente.
-
 Flujo interno de /predict:
   1. FastAPI valida el JSON con PredictionRequest (Pydantic)
   2. Convertimos los datos a dict (el formato que entiende make_prediction)

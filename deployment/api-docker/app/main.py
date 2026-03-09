@@ -3,19 +3,13 @@ app/main.py
 ============
 Punto de entrada de la aplicación FastAPI.
 
-Este archivo hace CUATRO cosas:
+Este script:
 
   1. Crea la instancia de FastAPI con su metadata (título, versión, docs).
   2. Configura CORS para que el dashboard (en otro puerto) pueda llamar la API.
   3. Registra todos los routers (health, predict) bajo el prefijo /api/v1.
   4. Define los eventos startup/shutdown para inicializar/liberar recursos.
 
-¿Por qué separar main.py de los endpoints?
-  Si pusiste todo en un solo archivo, cuando el proyecto crece te vuelves loco.
-  La separación permite:
-    - Agregar nuevos endpoints sin tocar main.py
-    - Testear main.py de forma aislada
-    - Múltiples personas trabajando sin conflictos de merge en git
 """
 
 import logging
