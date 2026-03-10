@@ -28,303 +28,124 @@ Resultados esperados:
 Tecnologías:
 Dash · Plotly · Pandas · Bootstrap · Python
 """
-
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc,html,Input,Output,State
 import dash_bootstrap_components as dbc
-import pandas as pd
 import plotly.express as px
+import pandas as pd
+import requests
 
+# --- CONFIG ---
+API_URL="http://54.226.107.173:8001/api/v1/predict"
 
-# 1. Cargar datos
-df = pd.read_csv('data/raw/shopping_behavior_updated.csv')
+# --- APP ---
+app=dash.Dash(__name__,external_stylesheets=[dbc.themes.CYBORG])
 
+# --- FUNCION API ---
+def call_api(payload):
+    try:
+        r=requests.post(API_URL,json=payload,timeout=30)
+        if r.status_code!=200:
+            return {"error":f"API respondió {r.status_code}","detail":r.text}
+        return r.json()
+    except Exception as e:
+        return {"error":str(e)}
 
-# 2. Estilo visual profesional
-STYLE = {
-    'bg': '#0B0F14',
-    'card': '#121821',
-    'accent': '#22C55E',
-    'accent_soft': '#4ADE80',
-    'text': '#E6EDF3',
-    'muted': '#94A3B8',
-    'grid': '#1E293B'
-}
+# --- LAYOUT ---
+app.layout=dbc.Container([
+    html.H1("📊 Predicción de Suscripción de Clientes",className="text-center my-4",style={"color":"white"}),
 
-external_stylesheets = [
-    dbc.themes.CYBORG,
-    "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
-]
+    dbc.Row([
+        dbc.Col([dbc.Label("Edad"),dbc.Input(id="age",type="number",value=30)],width=4),
+        dbc.Col([dbc.Label("Género"),
+            dcc.Dropdown(id="gender",options=[
+                {"label":"Masculino","value":"Male"},
+                {"label":"Femenino","value":"Female"}],value="Male")],width=4),
+        dbc.Col([dbc.Label("Categoría de Compra"),
+            dcc.Dropdown(id="category",options=[
+                {"label":"Ropa","value":"Clothing"},
+                {"label":"Electrodomésticos","value":"Electrodomestic"},
+                {"label":"Hogar","value":"Home"}],value="Clothing")],width=4)
+    ],className="mb-3"),
 
-app = dash.Dash(
-    __name__,
-    external_stylesheets=external_stylesheets,
-    suppress_callback_exceptions=True
-)
+    dbc.Row([
+        dbc.Col([dbc.Label("Monto de Compra (USD)"),dbc.Input(id="purchase_amount",type="number",value=100)],width=4),
+        dbc.Col([dbc.Label("¿Se aplicó descuento?"),
+            dcc.Dropdown(id="discount",options=[
+                {"label":"Sí","value":"Yes"},
+                {"label":"No","value":"No"}],value="Yes")],width=4),
+        dbc.Col([dbc.Label("Método de Pago"),
+            dcc.Dropdown(id="payment_method",options=[
+                {"label":"Tarjeta de Crédito","value":"Credit Card"},
+                {"label":"Tarjeta Débito","value":"Debit Card"},
+                {"label":"PayPal","value":"PayPal"}],value="Credit Card")],width=4)
+    ],className="mb-4"),
 
+    dbc.Row([
+        dbc.Col(dbc.Button("🔎 Realizar Predicción",id="predict-button",color="success",size="lg",className="w-100"),width=6)
+    ],justify="center",className="mb-4"),
 
-# KPI COMPONENT
-def kpi_box(label, id):
-    return html.Div([
-        html.P(label, style={
-            'color': STYLE['muted'],
-            'fontSize': '10px',
-            'marginBottom': '2px',
-            'letterSpacing': '1px'
-        }),
-        html.H3(id=id, style={
-            'color': STYLE['accent'],
-            'fontWeight': '600',
-            'margin': '0px'
-        })
-    ], style={
-        'padding': '8px 14px',
-        'borderRight': f'1px solid {STYLE["grid"]}'
-    })
+    dbc.Row([
+        dbc.Col(html.Div(id="prediction-output"),width=6)
+    ],justify="center",className="mb-4")
+    
+],fluid=True,style={"backgroundColor":"#000000","minHeight":"100vh"})
 
-
-# LAYOUT
-app.layout = html.Div(
-    style={
-        'backgroundColor': STYLE['bg'],
-        'minHeight': '100vh',
-        'padding': '25px',
-        'fontFamily': 'Inter, Segoe UI'
-    },
-    children=[
-        dbc.Container([
-
-            # HEADER
-            dbc.Row([
-                dbc.Col(html.Div([
-                    html.H5("INSIGHTS ENGINE // BEHAVIOR_ANALYSIS",
-                            style={'letterSpacing': '2px', 'fontWeight': '600', 'display': 'inline'}),
-                    html.Span("LIVE", style={
-                        "background": STYLE["accent"],
-                        "color": "black",
-                        "padding": "2px 8px",
-                        "borderRadius": "6px",
-                        "fontSize": "10px",
-                        "marginLeft": "10px"
-                    })
-                ]), md=6),
-
-                dbc.Col(html.Div([
-                    kpi_box("RECORDS", "kpi-total"),
-                    kpi_box("AVG_USD", "kpi-avg"),
-                    kpi_box("SUB_%", "kpi-sub"),
-                ], className="d-flex justify-content-end"), md=6)
-            ], className="mb-4 align-items-center"),
-
-
-            dbc.Row([
-
-                # SIDEBAR
-                dbc.Col([
-                    html.Div([
-
-                        html.Label("CATEGORY_SELECT",
-                                   style={'fontSize': '10px', 'color': STYLE['muted']}),
-
-                        dcc.Dropdown(
-                            id='category-filter',
-                            options=[{'label': c, 'value': c} for c in df['Category'].unique()]
-                                    + [{'label': 'GLOBAL', 'value': 'all'}],
-                            value='all',
-                            className="mb-3",
-                            style={'fontSize': '12px'}
-                        ),
-
-                        html.Label("AGE_PARAMETER",
-                                   style={'fontSize': '10px', 'color': STYLE['muted']}),
-
-                        dcc.RangeSlider(
-                            id='age-slider',
-                            min=df['Age'].min(),
-                            max=df['Age'].max(),
-                            value=[df['Age'].min(), df['Age'].max()],
-                            marks={i: {'label': str(i),
-                                       'style': {'color': STYLE['muted'], 'fontSize': '10px'}}
-                                   for i in range(20, 71, 10)}
-                        ),
-
-                    ], style={
-                        'padding': '15px',
-                        'backgroundColor': STYLE['card'],
-                        'borderRadius': '8px'
-                    })
-                ], md=3),
-
-
-                # PANEL GRÁFICOS
-                dbc.Col([
-
-                    dbc.Row([
-                        dbc.Col(dcc.Graph(id='subscription-plot',
-                                          config={'displayModeBar': False},
-                                          style={'height': '290px'}), md=6),
-
-                        dbc.Col(dcc.Graph(id='amount-dist-plot',
-                                          config={'displayModeBar': False},
-                                          style={'height': '290px'}), md=6),
-                    ], className="g-2 mb-2"),
-
-                    dbc.Row([
-                        dbc.Col(dcc.Graph(id='discount-heatmap',
-                                          config={'displayModeBar': False},
-                                          style={'height': '290px'}), md=6),
-
-                        dbc.Col(dcc.Graph(id='age-scatter-plot',
-                                          config={'displayModeBar': False},
-                                          style={'height': '290px'}), md=6),
-                    ], className="g-2 mb-2"),
-
-                    dbc.Row([
-                        dbc.Col(dcc.Graph(id='category-avg-plot',
-                                          config={'displayModeBar': False},
-                                          style={'height': '290px'}), md=6),
-
-                        dbc.Col(dcc.Graph(id='subscription-box-plot',
-                                          config={'displayModeBar': False},
-                                          style={'height': '290px'}), md=6),
-                    ], className="g-2")
-
-                ], md=9)
-            ])
-        ], fluid=True)
-    ]
-)
-
-
-# CALLBACK
+# --- CALLBACK ---
 @app.callback(
-    [
-        Output('subscription-plot', 'figure'),
-        Output('amount-dist-plot', 'figure'),
-        Output('discount-heatmap', 'figure'),
-        Output('age-scatter-plot', 'figure'),
-        Output('category-avg-plot', 'figure'),
-        Output('subscription-box-plot', 'figure'),
-        Output('kpi-total', 'children'),
-        Output('kpi-avg', 'children'),
-        Output('kpi-sub', 'children')
-    ],
-    [Input('category-filter', 'value'),
-     Input('age-slider', 'value')]
+    Output("prediction-output","children"),
+    Input("predict-button","n_clicks"),
+    State("age","value"),
+    State("gender","value"),
+    State("category","value"),
+    State("purchase_amount","value"),
+    State("discount","value"),
+    State("payment_method","value")
 )
-def update_dashboard(cat, age):
+def make_prediction(n_clicks,age,gender,category,purchase_amount,discount,payment_method):
+    if n_clicks is None:
+        return ""
 
-    dff = df[(df['Age'] >= age[0]) & (df['Age'] <= age[1])]
-    if cat != 'all':
-        dff = dff[dff['Category'] == cat]
+    payload={"inputs":[{
+        "Age":age,
+        "Purchase Amount (USD)":purchase_amount,
+        "Review_Rating":4.0,
+        "Previous_Purchases":5,
+        "Gender":gender,
+        "Category":category,
+        "Location":"New York",
+        "Size":"M",
+        "Color":"Blue",
+        "Season":"Summer",
+        "Shipping Type":"Free Shipping",
+        "Discount Applied":discount,
+        "Payment Method":payment_method,
+        "Frequency of Purchases":"Monthly",
+        "Customer ID":1,
+        "Item Purchased":"Shirt",
+        "Promo Code Used":"No"
+    }]}
 
+    result=call_api(payload)
 
-    # KPIs
-    kpi1 = f"{len(dff)}"
-    kpi2 = f"{dff['Purchase Amount (USD)'].mean():.1f}"
-    kpi3 = f"{(dff['Subscription Status'] == 'Yes').mean():.0%}"
+    if "error" in result:
+        return dbc.Alert([html.H4("Error llamando la API"),html.P(str(result))],color="danger")
 
+    pred=result["predictions"][0]
+    label=pred["label"]
+    prob=pred["probability"]
+    color="success" if label=="Subscribed" else "danger"
 
-    # Layout global gráficos
-    layout_cfg = {
-        'template': 'plotly_dark',
-        'paper_bgcolor': STYLE['card'],
-        'plot_bgcolor': STYLE['card'],
-        'margin': dict(t=35, b=30, l=40, r=20),
-        'font': {'size': 11, 'color': STYLE['text'], 'family': 'Inter'},
-        'title': {'font': {'size': 13, 'color': STYLE['accent']}, 'y': 0.95},
-        'xaxis': {'gridcolor': STYLE['grid'], 'zeroline': False},
-        'yaxis': {'gridcolor': STYLE['grid'], 'zeroline': False},
-        'transition_duration': 400
-    }
-
-
-    # 1 Suscripción por género
-    f1 = px.histogram(
-        dff,
-        x="Gender",
-        color="Subscription Status",
-        barmode="group",
-        color_discrete_sequence=[STYLE['accent'], STYLE['accent_soft']],
-        title="SUBSCRIPTION BY GENDER"
-    )
-    f1.update_traces(marker_line_width=0)
-
-
-    # 2 Distribución compras
-    f2 = px.histogram(
-        dff,
-        x="Purchase Amount (USD)",
-        color_discrete_sequence=[STYLE['accent']],
-        title="PURCHASE INTENSITY"
+    return dbc.Card(
+        dbc.CardBody([
+            html.H3("Resultado de la Predicción"),
+            html.H4(label),
+            html.P(f"Probabilidad: {round(prob*100,2)} %")
+        ]),
+        color=color,
+        inverse=True
     )
 
-
-    # 3 Heatmap
-    ct = pd.crosstab(
-        dff['Discount Applied'],
-        dff['Subscription Status'],
-        normalize='index'
-    )
-
-    f3 = px.imshow(
-        ct,
-        text_auto=".2f",
-        color_continuous_scale=[STYLE['bg'], STYLE['accent']],
-        title="PROBABILITY MATRIX"
-    )
-    f3.update_layout(coloraxis_showscale=False)
-
-
-    # 4 Scatter
-    f4 = px.scatter(
-        dff,
-        x="Age",
-        y="Purchase Amount (USD)",
-        color_discrete_sequence=[STYLE['accent']],
-        opacity=0.35,
-        title="AGE DISPERSION"
-    )
-    f4.update_traces(marker=dict(size=5))
-
-
-    # 5 Ranking categoría
-    cat_avg = (
-        dff.groupby("Category")["Purchase Amount (USD)"]
-        .mean()
-        .sort_values(ascending=False)
-        .reset_index()
-    )
-
-    f5 = px.bar(
-        cat_avg,
-        x="Purchase Amount (USD)",
-        y="Category",
-        orientation="h",
-        color_discrete_sequence=[STYLE['accent']],
-        title="AVG PURCHASE BY CATEGORY"
-    )
-
-
-    # 6 Boxplot suscripción
-    f6 = px.box(
-        dff,
-        x="Subscription Status",
-        y="Purchase Amount (USD)",
-        color="Subscription Status",
-        color_discrete_sequence=[STYLE['accent'], STYLE['accent_soft']],
-        title="SPENDING BEHAVIOR BY SUBSCRIPTION"
-    )
-
-
-    # aplicar layout global
-    for f in [f1, f2, f3, f4, f5, f6]:
-        f.update_layout(layout_cfg)
-
-
-    return f1, f2, f3, f4, f5, f6, kpi1, kpi2, kpi3
-
-
-if __name__ == '__main__':
-    #app.run(debug=True)
-    app.run(host="0.0.0.0", port=8050, debug=True)
+# --- RUN (AWS EC2) ---
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=8050,debug=False)
