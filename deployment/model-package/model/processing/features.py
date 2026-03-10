@@ -85,6 +85,9 @@ class ShoppingPreprocessor(BaseEstimator, TransformerMixin):
         d['Frequency_Numeric'] = d['Frequency of Purchases'].map(self.freq_map).fillna(0)
 
         # Interacciones
+        d['Age'] = d['Age'].fillna(0)
+        d['Review Rating'] = d['Review Rating'].fillna(0)
+        d['Previous Purchases'] = d['Previous Purchases'].fillna(0)
         d['Age_x_Freq']       = d['Age'] * d['Frequency_Numeric']
         d['Total_Engagement'] = d['Previous Purchases'] * d['Review Rating']
 
