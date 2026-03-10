@@ -3,3 +3,6 @@ numpy
 matplotlib
 scikit-learn
 dvc
+ash
+dash-bootstrap-components
+requests
